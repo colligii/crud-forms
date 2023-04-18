@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Forms {
+    id  String  @id @default(uuid())
+    name    String  @db.VarChar(100)
+    phone   String  @db.VarChar(13)
+    message String
+}
+
+model User {
+    id  String @id  @default(uuid())
+    email   String  @db.VarChar(60) @unique
+    updated_at DateTime @updatedAt
+    password    String  @db.VarChar(200)
+    active  Boolean @default(false)
+    created_date DateTime    @default(now())
+    activation_code String?  @db.Char(6)
+    login_code String?  @db.Char(6)
+    role_id String
+    role    Role    @relation(fields: [role_id], references: [id])
+}
+
+model Role {
+    id  String  @id @default(uuid())
+    name    String  @db.VarChar(100)
+    description String  @db.VarChar(255)
+    users   User[]
+    permissions PermissionOnRoles[]
+    created_date DateTime    @default(now())
+    updated_at DateTime @updatedAt
+}
+
+model PermissionOnRoles {
+    role    Role    @relation(fields: [role_id], references: [id])
+    role_id String  
+    permission  Permission  @relation(fields: [permission_id], references: [id])
+    permission_id   String
+    assigned_at DateTime    @default(now())
+    updated_at DateTime @updatedAt
+
+    @@id([ role_id, permission_id ])
+}
+
+model Permission {
+    id  String  @id @default(uuid())
+    name    String  @db.VarChar(100)
+    description String  @db.VarChar(255)
+    role    PermissionOnRoles[]
+    updated_at DateTime @updatedAt
+    created_date DateTime    @default(now())
+}
