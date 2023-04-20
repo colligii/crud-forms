@@ -8,6 +8,9 @@ import { ROLE_HELPER } from "../helper/role";
 import generateCode from "../lib/generate-code";
 import { USER_HELPER } from "../helper/user";
 import { validateLogin } from "../lib/validate-login";
+import emailQueue from "../lib/email-queue";
+import { LOGIN_HELPER } from "../helper/login";
+import { USER_ACTIVATED_HELPER } from "../helper/user-activated";
 
 const userRouter = Router();
 
@@ -52,10 +55,10 @@ userRouter.post("/",
                 select: {
                     id: true,
                     email: true,
-                    
+
                 }
             })
-
+            emailQueue.add({ email: user.email })
 
             res.json(user)
         } catch(e:any) {
@@ -63,6 +66,8 @@ userRouter.post("/",
         }
     }
 )
+
+
 
 
 userRouter.get("/all", 
@@ -91,6 +96,54 @@ userRouter.get("/all",
             res.status(500).json({ error: errorMessage })
         }
     }
+)
+
+userRouter.post("/active",
+    body("email").isEmail(),
+    body("password").matches(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/),
+    body("activation_code").matches(/[A-Z]{6,6}/),
+    validateCamps,
+    async (req: Request, res: Response) => {
+        
+        try {
+
+            const user = await prisma.user.findFirst({
+                where: {
+                    email: req.body.email,
+                    active: false,
+                    activation_code: req.body.activation_code
+                }
+            })
+
+            if(!user) return res.status(401).json({ error: LOGIN_HELPER.ERROR_ON_LOGIN })
+        
+            const password = await bcrypt.compare(req.body.password, user.password);
+            
+            if(!password) return res.status(401).json({ error: LOGIN_HELPER.ERROR_ON_LOGIN })
+
+            await prisma.user.update({
+                where: {
+                    email: req.body.email
+                },
+                data: {
+                    activation_code: null,
+                    active: true
+                }
+            })
+
+
+            res.json({ message: USER_ACTIVATED_HELPER.MAKE_IT })
+
+        } catch(e) {
+        
+            const errorMessage = SHARED_HELPER.ERROR;
+            console.log(errorMessage)
+            console.log(e);
+            res.status(500).json({ error: errorMessage })
+        }
+    
+
+    } 
 )
 
 export default userRouter;
