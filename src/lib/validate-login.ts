@@ -15,7 +15,7 @@ export const validateLogin = (permission: string) => {
 
             if(!token) return res.status(401).json({ error: TOKEN_HELPER.ERROR_MESSAGE })
 
-            const decodedToken:any = await jwt.verify(token, process.env.SECRET ?? "");
+            const decodedToken = await jwt.verify(token, process.env.SECRET ?? "") as DecodedToken;
 
             const user = await prisma.user.findFirst({
                 where: {
@@ -34,6 +34,7 @@ export const validateLogin = (permission: string) => {
             })
 
             if(user) return next()
+            console.log(decodedToken)
             res.status(401).json({ error: TOKEN_HELPER.ERROR_MESSAGE })
 
         } catch(e) {
@@ -46,4 +47,8 @@ export const validateLogin = (permission: string) => {
         }
 
     }
+}
+
+interface DecodedToken {
+    email: string
 }

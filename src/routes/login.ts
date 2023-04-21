@@ -14,21 +14,23 @@ loginRouter.post("/",
     body("password").matches(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/),
     validateCamps,
     async (req: Request, res: Response) => {
+
+        const { email, password } = req.body;
         
         try {
 
             const user = await prisma.user.findFirst({
                 where: {
-                    email: req.body.email,
+                    email: email,
                     active: true
                 }
             })
 
             if(!user) return res.status(401).json({ error: LOGIN_HELPER.ERROR_ON_LOGIN })
         
-            const password = await bcrypt.compare(req.body.password, user.password);
+            const passwordValidation = await bcrypt.compare(password, user.password);
             
-            if(!password) return res.status(401).json({ error: LOGIN_HELPER.ERROR_ON_LOGIN })
+            if(!passwordValidation) return res.status(401).json({ error: LOGIN_HELPER.ERROR_ON_LOGIN })
 
             const token = await jwt.sign({ email: user.email }, process.env.SECRET ?? "")
 

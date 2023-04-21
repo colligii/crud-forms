@@ -6,7 +6,7 @@
 
 CREATE TABLE public."Forms" (
 	id text NOT NULL,
-	"name" varchar(100) NOT NULL,
+	name varchar(100) NOT NULL,
 	phone varchar(13) NOT NULL,
 	message text NOT NULL,
 	CONSTRAINT "Forms_pkey" PRIMARY KEY (id)
@@ -21,7 +21,7 @@ CREATE TABLE public."Forms" (
 
 CREATE TABLE public."Permission" (
 	id text NOT NULL,
-	"name" varchar(100) NOT NULL,
+	name varchar(100) NOT NULL,
 	description varchar(255) NOT NULL,
 	updated_at timestamp(3) NOT NULL,
 	created_date timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -37,7 +37,7 @@ CREATE TABLE public."Permission" (
 
 CREATE TABLE public."Role" (
 	id text NOT NULL,
-	"name" varchar(100) NOT NULL,
+	name varchar(100) NOT NULL,
 	description varchar(255) NOT NULL,
 	created_date timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated_at timestamp(3) NOT NULL,
@@ -77,8 +77,8 @@ CREATE TABLE public."User" (
 	created_date timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	activation_code bpchar(6) NULL,
 	login_code bpchar(6) NULL,
-	role_id text NOT NULL,
+	role_id text NULL,
 	CONSTRAINT "User_pkey" PRIMARY KEY (id),
-	CONSTRAINT "User_role_id_fkey" FOREIGN KEY (role_id) REFERENCES public."Role"(id) ON DELETE RESTRICT ON UPDATE CASCADE
+	CONSTRAINT "User_role_id_fkey" FOREIGN KEY (role_id) REFERENCES public."Role"(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 CREATE UNIQUE INDEX "User_email_key" ON public."User" USING btree (email);

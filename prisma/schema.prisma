@@ -26,8 +26,8 @@ model User {
     created_date DateTime    @default(now())
     activation_code String?  @db.Char(6)
     login_code String?  @db.Char(6)
-    role_id String
-    role    Role    @relation(fields: [role_id], references: [id])
+    role_id String?
+    role    Role?    @relation(fields: [role_id], references: [id])
 }
 
 model Role {

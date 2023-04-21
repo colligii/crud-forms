@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { body, query } from "express-validator";
+import { body, param, query } from "express-validator";
 import { validateCamps } from "../lib/validate-camps";
 import prisma from "../db/prisma";
 import { SHARED_HELPER } from "../helper/shared";
@@ -15,10 +15,14 @@ formsRouter.post("/",
     validateCamps,
     async (req: Request, res: Response) => {
 
+        const { name, phone, message } = req.body
+
         try {
             const formCreated = await prisma.forms.create({
                 data: {
-                    ...req.body
+                    name,
+                    phone,
+                    message
                 }
             })
     
@@ -34,16 +38,44 @@ formsRouter.post("/",
     }
 )
 
-formsRouter.get("/",
-    query("id").isUUID(),
+
+formsRouter.get("/all", 
+    query("page").isNumeric(),
+    validateLogin("crud-forms"),
+    async(req: Request, res: Response) => {
+
+        try {
+
+            const forms = await prisma.forms.findMany({
+                skip: +(req.query.page ?? 0)*10,
+                take: 10
+            })
+
+            res.json(forms)
+        } catch(e) {
+
+            const errorMessage = SHARED_HELPER.ERROR;
+            console.log(errorMessage)
+            console.log(e);
+            res.status(500).json({ error: errorMessage })
+        }
+
+    }
+)
+
+formsRouter.get("/:id",
+    param("id").isUUID(),
     validateCamps,
+    validateLogin("crud-forms"),
     async (req: Request, res: Response) => {
+
+        const { id } = req.params
 
         try {
 
             const form = await prisma.forms.findUnique({
                 where: {
-                    id: req.params.id
+                    id: id
                 }
             })
 
@@ -63,19 +95,81 @@ formsRouter.get("/",
 
     })
 
-formsRouter.get("/all", 
-    query("page").isNumeric(),
+formsRouter.put("/",
+    body("id").isUUID(),
+    body("name").isString().optional(),
+    body("phone").isMobilePhone("any").optional(),
+    body("message").isString().optional(),
+    validateCamps,
     validateLogin("crud-forms"),
     async(req: Request, res: Response) => {
 
         try {
 
-            const forms = await prisma.forms.findMany({
-                skip: +(req.query.page ?? 0)*10,
-                take: 10
+            const { id, name, phone, message } = req.body
+
+            const form = await prisma.forms.findUnique({
+                where: {
+                    id,
+                }
             })
 
-            res.json(forms)
+            if(!form) return res.status(404).json({
+                error: FORMS_HELPER.CONTACT_DONT_EXISTS
+            })
+
+            const updatedForm = await prisma.forms.update({
+                where: {
+                    id
+                },
+                data: {
+                    name,
+                    phone,
+                    message
+                }
+            })
+
+            res.json(updatedForm)
+
+        } catch(e) {
+
+            const errorMessage = SHARED_HELPER.ERROR;
+            console.log(errorMessage)
+            console.log(e);
+            res.status(500).json({ error: errorMessage })
+        }
+        
+    }
+)
+
+formsRouter.delete("/:id", 
+    param("id").isUUID(),
+    validateCamps,
+    validateLogin("crud-forms"),
+    async (req: Request, res: Response) => {
+
+        try {
+
+            const { id } = req.params;
+
+            const form = await prisma.forms.findUnique({
+                where: {
+                    id,
+                }
+            })
+
+            if(!form) return res.status(404).json({
+                error: FORMS_HELPER.CONTACT_DONT_EXISTS
+            })
+
+            const deletedForm = await prisma.forms.delete({
+                where: {
+                    id
+                }
+            })
+
+            res.json(deletedForm)
+
         } catch(e) {
 
             const errorMessage = SHARED_HELPER.ERROR;
