@@ -1,4 +1,27 @@
 
+# CONTACT FORM
+
+The goal of this project is to create a fully functional contact forms for a Application, for my portfolio, and make a OPEN SOURCE api.
+## Features
+
+- CRUD of Users with account validation when creates.
+- CRUD of forms
+- CRUD of permissions
+- CRUD of roles
+- Connect and disconnect permissions and roles
+
+## Authors
+
+- [@colligii](https://www.github.com/colligii)
+
+
+## Technologies
+
+- Express.JS
+- PostgreSQL
+- Prisma
+- Eslint
+
 ## API Reference
 
 ### Forms
